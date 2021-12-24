@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cmd",
+    srcs = ["cmd.go"],
+    importpath = "github.com/ZalgoNoise/hashclock/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//clock",
+        "//flags",
+        "@com_github_zalgonoise_meta//crypto/hash:go_default_library",
+    ],
+)
