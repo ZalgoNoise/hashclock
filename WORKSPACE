@@ -24,14 +24,11 @@ http_archive(
     ],
 )
 
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
-
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 gazelle_dependencies()
 
-# load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
-# new_git_repository(
-#     name = "hash",
-#     remote = "https://github.com/ZalgoNoise/meta/crypto/hash",
-#     branch = "master",
-#     build_file = "//meta/crypto/hash/BUILD.bazel",
-# )
+go_repository(
+    name = "com_github_zalgonoise_meta",
+    importpath = "github.com/ZalgoNoise/meta",
+    commit = "97a0ffe39c9f88bdaf87576f80bc472c86dd26b0",
+)

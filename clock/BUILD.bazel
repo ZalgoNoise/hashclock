@@ -5,5 +5,5 @@ go_library(
     srcs = ["clock.go"],
     importpath = "github.com/ZalgoNoise/hashclock/clock",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_zalgonoise_meta//crypto/hash:go_default_library"],
+    deps = ["@com_github_zalgonoise_meta//crypto/hash"],
 )
