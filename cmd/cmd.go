@@ -19,6 +19,21 @@ func Run() {
 		fmt.Errorf("input seed string is undefined")
 		os.Exit(1)
 	}
+
+	if cfg.Timeout > 0 {
+		count, hash := clock.RecursiveSHA256Timed(cfg.ClockSeed, cfg.Timeout)
+
+		fmt.Printf(
+			"----\ntime: %v seconds; hashes: %v; seed: %s\n----\n%x\n----\n",
+			cfg.Timeout,
+			count,
+			cfg.ClockSeed,
+			hash,
+		)
+		os.Exit(0)		
+	}
+
+
 	if cfg.Iterations == 0 {
 		clock.RecursiveSHA256Inf(cfg.ClockSeed, cfg.Breakpoint)
 	}
