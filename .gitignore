@@ -25,4 +25,6 @@
 user.bazelrc
 
 # Build folder
-build/
+build/*
+
+!build/build.sh
