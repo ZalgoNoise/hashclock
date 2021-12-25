@@ -3,10 +3,11 @@ package flags
 import "flag"
 
 type PoHConfig struct {
-	ClockSeed string
+	ClockSeed  string
 	Iterations int
 	Breakpoint int
-	Timeout int
+	Timeout    int
+	SetJSON    bool
 }
 
 func NewConfig() *PoHConfig {
@@ -14,13 +15,15 @@ func NewConfig() *PoHConfig {
 	inputIterations := flag.Int("iter", 1, "Number of iterations")
 	inputBreakpoint := flag.Int("log", 1, "Log hashes every # of steps")
 	inputTimeout := flag.Int("time", 0, "Calculate hashes for # seconds")
+	inputSetJSON := flag.Bool("json", false, "Returns the output in JSON format")
 
 	flag.Parse()
 
 	return &PoHConfig{
-		ClockSeed: *inputClockSeed,
+		ClockSeed:  *inputClockSeed,
 		Iterations: *inputIterations,
 		Breakpoint: *inputBreakpoint,
-		Timeout: *inputTimeout,
+		Timeout:    *inputTimeout,
+		SetJSON:    *inputSetJSON,
 	}
 }
