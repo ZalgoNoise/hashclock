@@ -9,12 +9,6 @@ http_archive(
     ],
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-
-go_rules_dependencies()
-
-go_register_toolchains(version = "1.17.1")
-
 http_archive(
     name = "bazel_gazelle",
     sha256 = "de69a09dc70417580aabf20a28619bb3ef60d038470c7cf8442fafcf627c21cb",
@@ -24,11 +18,18 @@ http_archive(
     ],
 )
 
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
-gazelle_dependencies()
 
 go_repository(
     name = "com_github_zalgonoise_meta",
     importpath = "github.com/ZalgoNoise/meta",
-    commit = "97a0ffe39c9f88bdaf87576f80bc472c86dd26b0",
+    sum = "h1:cunE4CsvzzgHDJc4CSjFeTd0pEkI0Si/vE26O8zqGeo=",
+    version = "v0.0.0-20211224203501-97a0ffe39c9f",
 )
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.17.2")
+
+gazelle_dependencies()
