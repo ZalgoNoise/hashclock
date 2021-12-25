@@ -4,7 +4,7 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 gazelle(name = "gazelle")
 
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 
 go_library(
     name = "hashclock_lib",
@@ -21,10 +21,26 @@ go_binary(
 )
 
 container_image(
-    name = "hashclock_docker",
+    name = "latest",
     base = "@alpine_linux_amd64//image",
+    user = "hashclock",
     entrypoint = ["/hashclock"],
-    files = [":hashclock"],    
+    files = [":hashclock"],
+    repository = "zalgonoise/hashclock",
+)
+container_push(
+    name = "dockerhub-push",
+    format = "Docker",
+    image = ":latest",
+    registry = "index.docker.io",
+    repository = "zalgonoise/hashclock",
+)
+container_push(
+    name = "github-push",
+    format = "Docker",
+    image = ":latest",
+    registry = "ghcr.io",
+    repository = "zalgonoise/hashclock",
 )
 
 
