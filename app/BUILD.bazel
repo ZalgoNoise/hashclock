@@ -42,7 +42,7 @@ container_push(
     format = "Docker",
     image = ":latest",
     registry = "ghcr.io",
-    repository = "zalgonoise/hashclock/hashclock",
+    repository = "zalgonoise/hashclock",
 )
 
 platform(
