@@ -14,7 +14,7 @@ import (
 
 func Run() {
 	cfg := flags.NewConfig()
-	
+
 	if cfg.ClockSeed == "" {
 		fmt.Errorf("input seed string is undefined")
 		os.Exit(1)
@@ -30,9 +30,8 @@ func Run() {
 			cfg.ClockSeed,
 			hash,
 		)
-		os.Exit(0)		
+		os.Exit(0)
 	}
-
 
 	if cfg.Iterations == 0 {
 		clock.RecursiveSHA256Inf(cfg.ClockSeed, cfg.Breakpoint)
@@ -47,17 +46,17 @@ func Run() {
 			hash, err := clock.RecursiveSHA256(cfg.ClockSeed, cfg.Iterations)
 			if err != nil {
 				fmt.Errorf("error while hashing seed: %v", err)
-				os.Exit(1)	
+				os.Exit(1)
 			}
 			fmt.Printf("#%v:\t\t%x\n", cfg.Iterations, hash)
 		}
-		
+
 		hash, err := clock.RecursiveSHA256Logged(cfg.ClockSeed, cfg.Iterations, cfg.Breakpoint)
 		if err != nil {
 			fmt.Errorf("error while hashing seed: %v", err)
-			os.Exit(1)	
+			os.Exit(1)
 		}
-		fmt.Printf("#%v:\t\t%x\n", cfg.Iterations, hash)
+		fmt.Printf("----\n#%v:\t\t%x\n", cfg.Iterations, hash)
 
 	}
 }
