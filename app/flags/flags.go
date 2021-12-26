@@ -2,7 +2,7 @@ package flags
 
 import "flag"
 
-type PoHConfig struct {
+type CLIConfig struct {
 	ClockSeed  string
 	Iterations int
 	Breakpoint int
@@ -10,7 +10,7 @@ type PoHConfig struct {
 	SetJSON    bool
 }
 
-func NewConfig() *PoHConfig {
+func NewConfig() *CLIConfig {
 	inputClockSeed := flag.String("seed", "", "Input seed which will be hashed")
 	inputIterations := flag.Int("iter", 1, "Number of iterations")
 	inputBreakpoint := flag.Int("log", 1, "Log hashes every # of steps")
@@ -19,7 +19,7 @@ func NewConfig() *PoHConfig {
 
 	flag.Parse()
 
-	return &PoHConfig{
+	return &CLIConfig{
 		ClockSeed:  *inputClockSeed,
 		Iterations: *inputIterations,
 		Breakpoint: *inputBreakpoint,

@@ -8,6 +8,5 @@ go_library(
     deps = [
         "//clock",
         "//flags",
-        "@com_github_zalgonoise_meta//crypto/hash",
     ],
 )

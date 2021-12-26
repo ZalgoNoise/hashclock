@@ -1,41 +1,47 @@
 package cmd
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
 
 	"github.com/ZalgoNoise/hashclock/flags"
-	rsha "github.com/ZalgoNoise/meta/crypto/hash"
 
 	// "hashclock/flags"
 	"github.com/ZalgoNoise/hashclock/clock"
 	// "hashclock/clock"
 )
 
-type output struct {
-	Seed       string `json:"seed,omitempty"`
-	Iterations int    `json:"iterations,omitempty"`
-	Timeout    int    `json:"timeout,omitempty"`
-	Hash       string `json:"hash,omitempty"`
+func printResponse(res *clock.HashClockResponse, toJSON bool) {
+	if toJSON {
+		printJSON(res)
+	}
+	printText(res)
 }
 
-func printJSON(seed string, hash string, iterations int, timeout int) {
+func printJSON(res *clock.HashClockResponse) {
+	type output struct {
+		Seed       string `json:"seed,omitempty"`
+		Iterations int    `json:"iterations,omitempty"`
+		Timeout    int    `json:"timeout,omitempty"`
+		Hash       string `json:"hash,omitempty"`
+	}
+
 	o := &output{}
 
-	o.Seed = seed
-	o.Hash = hash
+	o.Seed = res.Seed
+	o.Hash = res.Hash
 
-	if iterations > 0 {
-		o.Iterations = iterations
+	if res.Iterations > 0 {
+		o.Iterations = res.Iterations
 	}
 
-	if timeout > 0 {
-		o.Timeout = timeout
+	if res.Timeout > 0 {
+		o.Timeout = res.Timeout
 	}
 	out, err := json.Marshal(o)
+
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +49,7 @@ func printJSON(seed string, hash string, iterations int, timeout int) {
 	os.Exit(0)
 }
 
-func printText(seed string, hash string, iterations int, timeout int) {
+func printText(res *clock.HashClockResponse) {
 	const (
 		pad string = "----"
 		tb  string = "time: "
@@ -57,18 +63,18 @@ func printText(seed string, hash string, iterations int, timeout int) {
 
 	out := nl + pad + nl
 
-	if timeout > 0 {
-		if timeout == 1 {
-			out += tb + strconv.Itoa(timeout) + tas + sp
+	if res.Timeout > 0 {
+		if res.Timeout == 1 {
+			out += tb + strconv.Itoa(res.Timeout) + tas + sp
 		} else {
-			out += tb + strconv.Itoa(timeout) + tam + sp
+			out += tb + strconv.Itoa(res.Timeout) + tam + sp
 		}
 	}
-	if iterations > 0 {
-		out += i + strconv.Itoa(iterations) + sp
+	if res.Iterations > 0 {
+		out += i + strconv.Itoa(res.Iterations) + sp
 	}
-	out += s + seed + nl
-	out += pad + nl + hash + nl + pad + nl
+	out += s + res.Seed + nl
+	out += pad + nl + res.Hash + nl + pad + nl
 
 	fmt.Println(out)
 	os.Exit(0)
@@ -76,6 +82,7 @@ func printText(seed string, hash string, iterations int, timeout int) {
 
 func Run() {
 	cfg := flags.NewConfig()
+	cService := clock.NewService()
 
 	if cfg.ClockSeed == "" {
 		fmt.Errorf("input seed string is undefined")
@@ -83,49 +90,49 @@ func Run() {
 	}
 
 	if cfg.Timeout > 0 {
-		count, hash := clock.RecursiveSHA256Timed(cfg.ClockSeed, cfg.Timeout)
-
-		if cfg.SetJSON {
-			printJSON(cfg.ClockSeed, hex.EncodeToString(hash), count, cfg.Timeout)
+		res, err := cService.RecHashTime(cfg.ClockSeed, cfg.Timeout)
+		if err != nil {
+			fmt.Errorf(err.Error())
+			os.Exit(1)
 		}
-		printText(cfg.ClockSeed, hex.EncodeToString(hash), count, cfg.Timeout)
 
+		printResponse(res, cfg.SetJSON)
 	}
 
 	if cfg.Iterations == 0 {
-		clock.RecursiveSHA256Inf(cfg.ClockSeed, cfg.Breakpoint)
+		err := cService.RecHashLoop(cfg.ClockSeed, cfg.Breakpoint)
+		if err != nil {
+			fmt.Errorf(err.Error())
+			os.Exit(1)
+		}
+
 	}
 	if cfg.Iterations == 1 {
-		hash := rsha.Hash(cfg.ClockSeed)
-
-		if cfg.SetJSON {
-			printJSON(cfg.ClockSeed, hex.EncodeToString(hash), cfg.Iterations, cfg.Timeout)
+		res, err := cService.Hash(cfg.ClockSeed)
+		if err != nil {
+			fmt.Errorf(err.Error())
+			os.Exit(1)
 		}
-		printText(cfg.ClockSeed, hex.EncodeToString(hash), cfg.Iterations, cfg.Timeout)
 
+		printResponse(res, cfg.SetJSON)
 	}
 	if cfg.Iterations >= 2 {
 		if cfg.Breakpoint == 0 {
-			hash, err := clock.RecursiveSHA256(cfg.ClockSeed, cfg.Iterations)
+			res, err := cService.RecHash(cfg.ClockSeed, cfg.Iterations)
 			if err != nil {
-				fmt.Errorf("error while hashing seed: %v", err)
+				fmt.Errorf(err.Error())
 				os.Exit(1)
 			}
-			if cfg.SetJSON {
-				printJSON(cfg.ClockSeed, hex.EncodeToString(hash), cfg.Iterations, cfg.Timeout)
-			}
-			printText(cfg.ClockSeed, hex.EncodeToString(hash), cfg.Iterations, cfg.Timeout)
 
+			printResponse(res, cfg.SetJSON)
 		}
 
-		hash, err := clock.RecursiveSHA256Logged(cfg.ClockSeed, cfg.Iterations, cfg.Breakpoint)
+		res, err := cService.RecHashPrint(cfg.ClockSeed, cfg.Iterations, cfg.Breakpoint)
 		if err != nil {
-			fmt.Errorf("error while hashing seed: %v", err)
+			fmt.Errorf(err.Error())
 			os.Exit(1)
 		}
-		if cfg.SetJSON {
-			printJSON(cfg.ClockSeed, hex.EncodeToString(hash), cfg.Iterations, cfg.Timeout)
-		}
-		printText(cfg.ClockSeed, hex.EncodeToString(hash), cfg.Iterations, cfg.Timeout)
+
+		printResponse(res, cfg.SetJSON)
 	}
 }
