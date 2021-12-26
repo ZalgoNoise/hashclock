@@ -1,15 +1,21 @@
+// Package clock contains the logic for the `HashClockService`,
+// which defines several methods for (recursively) hashing a string.
+//
+// It is built generically to support multiple actions with a
+// standard service:request/response structure
 package clock
 
 import (
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"time"
 
 	rsha "github.com/ZalgoNoise/meta/crypto/hash"
-
-	"errors"
-	"fmt"
 )
 
+// HashClockRequest struct defines the input configuration for
+// a `HashClockService` request
 type HashClockRequest struct {
 	seed       string
 	iterations int
@@ -17,6 +23,8 @@ type HashClockRequest struct {
 	timeout    int
 }
 
+// HashClockResponse struct defines the input configuration for
+// a `HashClockService` response
 type HashClockResponse struct {
 	Seed       string `json:"seed,omitempty"`
 	Timeout    int    `json:"timeout,omitempty"`
@@ -24,17 +32,21 @@ type HashClockResponse struct {
 	Hash       string `json:"hash,omitempty"`
 }
 
+// HashClockService struct is a placeholder for this service,
+// containing a pointer to both the request and response objects,
+// and being the container for all methods in this package
 type HashClockService struct {
 	request  *HashClockRequest
 	response *HashClockResponse
 }
 
+// NewService function is a generic public function to spawn a
+// pointer to a new HashClockService, with set default values
 func NewService() *HashClockService {
 	c := &HashClockService{}
 
-	// initialize req & res
+	// initialize req
 	c.request = &HashClockRequest{}
-	c.response = &HashClockResponse{}
 
 	// set default values
 	c.request.iterations = 1
@@ -44,6 +56,8 @@ func NewService() *HashClockService {
 	return c
 }
 
+// Hash method takes in a string to hash, returning an execution of the
+// `newHashResponse` method
 func (c *HashClockService) Hash(seed string) (*HashClockResponse, error) {
 	// empty string exception
 	if seed == "" {
@@ -55,20 +69,26 @@ func (c *HashClockService) Hash(seed string) (*HashClockResponse, error) {
 	c.request.breakpoint = 1
 	c.request.timeout = 0
 
-	return newHashResponse(c.request)
+	return c.newHashResponse()
 }
 
-func newHashResponse(req *HashClockRequest) (*HashClockResponse, error) {
-	hash := hex.EncodeToString(rsha.Hash(req.seed))
+// newHashResponse method will parse the `HashClockService.request` object
+// and build its `HashClockResponse.response` with the hash for the seed string
+func (c *HashClockService) newHashResponse() (*HashClockResponse, error) {
+	hash := hex.EncodeToString(rsha.Hash(c.request.seed))
 
-	return &HashClockResponse{
-		Seed:       req.seed,
-		Timeout:    req.timeout,
-		Iterations: req.iterations,
+	c.response = &HashClockResponse{
+		Seed:       c.request.seed,
+		Timeout:    c.request.timeout,
+		Iterations: c.request.iterations,
 		Hash:       hash,
-	}, nil
+	}
+
+	return c.response, nil
 }
 
+// RecHash method takes in a string to hash and the number of desired iterations,
+// returning an execution of the `newRecHashResponse` method
 func (c *HashClockService) RecHash(seed string, iter int) (*HashClockResponse, error) {
 	// empty string exception
 	if seed == "" {
@@ -85,29 +105,36 @@ func (c *HashClockService) RecHash(seed string, iter int) (*HashClockResponse, e
 	c.request.breakpoint = 0
 	c.request.timeout = 0
 
-	return newRecHashResponse(c.request)
+	return c.newRecHashResponse()
 }
 
-func newRecHashResponse(req *HashClockRequest) (*HashClockResponse, error) {
+// newRecHashResponse method will parse the `HashClockService.request` object
+// and build its `HashClockResponse.response`; by hashing the seed for the number
+// of times defined in the iterations value, and setting them in the response object
+func (c *HashClockService) newRecHashResponse() (*HashClockResponse, error) {
 	var hash []byte
 
 	// recursive SHA256 hash
-	for i := 1; i <= req.iterations; i++ {
+	for i := 1; i <= c.request.iterations; i++ {
 		if i == 1 {
-			hash = rsha.Hash(req.seed)
+			hash = rsha.Hash(c.request.seed)
 		} else {
 			hash = rsha.Hash(hash)
 		}
 	}
 
-	return &HashClockResponse{
-		Seed:       req.seed,
-		Timeout:    req.timeout,
-		Iterations: req.iterations,
+	c.response = &HashClockResponse{
+		Seed:       c.request.seed,
+		Timeout:    c.request.timeout,
+		Iterations: c.request.iterations,
 		Hash:       hex.EncodeToString(hash),
-	}, nil
+	}
+
+	return c.response, nil
 }
 
+// RecHashPrint method takes in a string to hash, the number of desired iterations,
+// and a breakpoint value; returning an execution of the `newRecHashResponse` method
 func (c *HashClockService) RecHashPrint(seed string, iter int, breakpoint int) (*HashClockResponse, error) {
 	// empty string exception
 	if seed == "" {
@@ -134,34 +161,53 @@ func (c *HashClockService) RecHashPrint(seed string, iter int, breakpoint int) (
 	c.request.breakpoint = breakpoint
 	c.request.timeout = 0
 
-	return newRecHashPrintResponse(c.request)
+	return c.newRecHashPrintResponse()
 }
 
-func newRecHashPrintResponse(req *HashClockRequest) (*HashClockResponse, error) {
+// newRecHashPrintResponse method will parse the `HashClockService.request` object
+// and build its `HashClockResponse.response`; by hashing the seed for the number
+// of times defined in the iterations value, and setting them in the response object.
+//
+// During execution, if the counter modulo breakpoint is zero (counter % breakpoint == 0),
+// the hash is printed to std-out.
+func (c *HashClockService) newRecHashPrintResponse() (*HashClockResponse, error) {
 	var hash []byte
 
 	// recursive SHA256 hash
-	for i := 1; i <= req.iterations; i++ {
+	for i := 1; i <= c.request.iterations; i++ {
 		if i == 1 {
-			hash = rsha.Hash(req.seed)
+			hash = rsha.Hash(c.request.seed)
 		} else {
 			hash = rsha.Hash(hash)
 		}
 
 		// breakpoint logging
-		if i%req.breakpoint == 0 {
+		if i%c.request.breakpoint == 0 {
 			fmt.Printf("#%v:\t%x\n", i, hash)
 		}
 	}
 
-	return &HashClockResponse{
-		Seed:       req.seed,
-		Timeout:    req.timeout,
-		Iterations: req.iterations,
+	c.response = &HashClockResponse{
+		Seed:       c.request.seed,
+		Timeout:    c.request.timeout,
+		Iterations: c.request.iterations,
 		Hash:       hex.EncodeToString(hash),
-	}, nil
+	}
+
+	return c.response, nil
 }
 
+// RecHashLoop method will recursively hash the seed string, infinitely
+// (or until the program is halted) while printing out its hashes.
+//
+// During execution, if the counter modulo breakpoint is zero (counter % breakpoint == 0),
+// the hash is printed to std-out.
+//
+// This means that a breakpoint of 1 prints every hash, while a breakpoint of 5 prints
+// every 5th hash.
+//
+// Does not return a response object since it will be an infinite loop until the program
+// is interrupted and/or killed; only an error in case the input values are invalid
 func (c *HashClockService) RecHashLoop(seed string, breakpoint int) error {
 	// empty string exception
 	if seed == "" {
@@ -192,6 +238,8 @@ func (c *HashClockService) RecHashLoop(seed string, breakpoint int) error {
 	}
 }
 
+// RecHashTime method will take in a seed string and a timeout value (in seconds),
+// returning an execution of the `newRecHashTimeResponse` method
 func (c *HashClockService) RecHashTime(seed string, timeout int) (*HashClockResponse, error) {
 	// empty string exception
 	if seed == "" {
@@ -207,13 +255,20 @@ func (c *HashClockService) RecHashTime(seed string, timeout int) (*HashClockResp
 	c.request.breakpoint = 0
 	c.request.timeout = timeout
 
-	return newRecHashTimeResponse(c.request)
+	return c.newRecHashTimeResponse()
 }
 
-func newRecHashTimeResponse(req *HashClockRequest) (*HashClockResponse, error) {
+// newRecHashTimeResponse method will parse the `HashClockService.request` object
+// and build its `HashClockResponse.response`; by continuously hashing the seed string
+// in a goroutine limited by a timer (in seconds).
+//
+// Once the timer runs out, a created `done` channel interrupts the goroutine. The
+// calculated hash and number of iterations are parsed into the `HashClockResponse.response`
+// object
+func (c *HashClockService) newRecHashTimeResponse() (*HashClockResponse, error) {
 	r := &HashClockResponse{}
-	r.Seed = req.seed
-	r.Timeout = req.timeout
+	r.Seed = c.request.seed
+	r.Timeout = c.request.timeout
 
 	// recursive conversions are done with byte arrays
 	// to preserve performance, instead of constantly
@@ -229,7 +284,7 @@ func newRecHashTimeResponse(req *HashClockRequest) (*HashClockResponse, error) {
 	// recursively calculate hashes until timer is up
 	go func() {
 
-		ts.hash = rsha.Hash(req.seed)
+		ts.hash = rsha.Hash(c.request.seed)
 		ts.id = 1
 
 		for {
@@ -245,7 +300,7 @@ func newRecHashTimeResponse(req *HashClockRequest) (*HashClockResponse, error) {
 	}()
 
 	// kick off timer; then send done signal to goroutine
-	time.Sleep(time.Second * time.Duration(req.timeout))
+	time.Sleep(time.Second * time.Duration(c.request.timeout))
 	done <- true
 
 	// get calculated hash and number of iterations
