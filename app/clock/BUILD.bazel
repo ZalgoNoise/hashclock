@@ -2,7 +2,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "clock",
-    srcs = ["clock.go"],
+    srcs = [
+        "hash.go",
+        "service.go",
+        "verify.go",
+    ],
     importpath = "github.com/ZalgoNoise/hashclock/clock",
     visibility = ["//visibility:public"],
     deps = ["@com_github_zalgonoise_meta//crypto/hash"],
