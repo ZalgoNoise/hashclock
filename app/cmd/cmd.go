@@ -29,6 +29,9 @@ func printJSON(res *clock.HashClockResponse) {
 		Iterations int    `json:"iterations,omitempty"`
 		Timeout    int    `json:"timeout,omitempty"`
 		Hash       string `json:"hash,omitempty"`
+		Target     string `json:"target,omitempty"`
+		Match      bool   `json:"match,omitempty"`
+		Duration   string `json:"duration,omitempty"`
 	}
 
 	o := &output{}
@@ -43,6 +46,13 @@ func printJSON(res *clock.HashClockResponse) {
 	if res.Timeout > 0 {
 		o.Timeout = res.Timeout
 	}
+
+	if res.Target != "" {
+		o.Target = res.Target
+		o.Match = res.Match
+		o.Duration = res.Duration.String()
+	}
+
 	out, err := json.Marshal(o)
 
 	if err != nil {
@@ -57,11 +67,14 @@ func printJSON(res *clock.HashClockResponse) {
 func printText(res *clock.HashClockResponse) {
 	const (
 		pad string = "----"
-		tb  string = "time: "
+		tb  string = "timeout: "
 		tas string = " second"
 		tam string = " seconds"
 		i   string = "hashes: "
 		s   string = "seed: "
+		t   string = "target: "
+		m   string = "match: "
+		d   string = "duration: "
 		sp  string = "; "
 		nl  string = "\n"
 	)
@@ -78,8 +91,17 @@ func printText(res *clock.HashClockResponse) {
 	if res.Iterations > 0 {
 		out += i + strconv.Itoa(res.Iterations) + sp
 	}
-	out += s + res.Seed + nl
-	out += pad + nl + res.Hash + nl + pad + nl
+	out += s + res.Seed + sp
+
+	if res.Target != "" {
+		out += t + res.Target + sp + m + strconv.FormatBool(res.Match) + sp
+	}
+
+	if res.Duration > 0 {
+		out += d + res.Duration.String() + sp
+	}
+
+	out += nl + pad + nl + res.Hash + nl + pad + nl
 
 	fmt.Println(out)
 	os.Exit(0)
@@ -98,17 +120,55 @@ func Run() {
 	cfg := flags.NewConfig()
 	cService := clock.NewService()
 
-	if cfg.ClockSeed == "" {
-		fmt.Errorf("input seed string is undefined")
+	if cfg.Seed == "" {
+		fmt.Println("input seed string is undefined")
 		os.Exit(1)
+	}
+
+	// hash is set
+	// verify hashes from seed
+	if cfg.Hash != "" {
+		// timeout is also set
+		// verify hash within # of seconds
+		if cfg.Timeout > 0 {
+			res, err := cService.VerifyTimeout(cfg.Seed, cfg.Hash, cfg.Timeout)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+
+			printResponse(res, cfg.SetJSON)
+		}
+
+		// iterations is set
+		// verify hashes with a certain index; default value
+		// for iterations in CLI is 1, so detector starts at 2
+		if cfg.Iterations > 1 {
+			res, err := cService.VerifyIndex(cfg.Seed, cfg.Hash, cfg.Iterations)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+
+			printResponse(res, cfg.SetJSON)
+		}
+
+		// simple verifier (runs indefinitely)
+		res, err := cService.Verify(cfg.Seed, cfg.Hash)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+
+		printResponse(res, cfg.SetJSON)
 	}
 
 	// timeout is set
 	// calculate hashes for # seconds
 	if cfg.Timeout > 0 {
-		res, err := cService.RecHashTime(cfg.ClockSeed, cfg.Timeout)
+		res, err := cService.RecHashTimeout(cfg.Seed, cfg.Timeout)
 		if err != nil {
-			fmt.Errorf(err.Error())
+			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 
@@ -118,9 +178,9 @@ func Run() {
 	// 0 iterations set
 	// infinite recursive hashing
 	if cfg.Iterations == 0 {
-		err := cService.RecHashLoop(cfg.ClockSeed, cfg.Breakpoint)
+		err := cService.RecHashLoop(cfg.Seed, cfg.Breakpoint)
 		if err != nil {
-			fmt.Errorf(err.Error())
+			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 
@@ -129,9 +189,9 @@ func Run() {
 	// 1 iteration set
 	// clac only 1 hash of a seed string
 	if cfg.Iterations == 1 {
-		res, err := cService.Hash(cfg.ClockSeed)
+		res, err := cService.Hash(cfg.Seed)
 		if err != nil {
-			fmt.Errorf(err.Error())
+			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 
@@ -145,9 +205,9 @@ func Run() {
 		// breakpoint is 0
 		// don't print calculated hashes
 		if cfg.Breakpoint == 0 {
-			res, err := cService.RecHash(cfg.ClockSeed, cfg.Iterations)
+			res, err := cService.RecHash(cfg.Seed, cfg.Iterations)
 			if err != nil {
-				fmt.Errorf(err.Error())
+				fmt.Println(err.Error())
 				os.Exit(1)
 			}
 
@@ -156,9 +216,9 @@ func Run() {
 
 		// breakpoint is 1+
 		// log every X hashes
-		res, err := cService.RecHashPrint(cfg.ClockSeed, cfg.Iterations, cfg.Breakpoint)
+		res, err := cService.RecHashPrint(cfg.Seed, cfg.Iterations, cfg.Breakpoint)
 		if err != nil {
-			fmt.Errorf(err.Error())
+			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 
