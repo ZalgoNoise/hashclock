@@ -3,8 +3,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "clock",
     srcs = [
+        "clock.go",
         "hash.go",
-        "service.go",
         "verify.go",
     ],
     importpath = "github.com/ZalgoNoise/hashclock/clock",
@@ -15,6 +15,7 @@ go_library(
 go_test(
     name = "clock_test",
     srcs = ["hash_test.go"],
+    args = ["-test.v"],
     embed = [":clock"],
     deps = ["@com_github_zalgonoise_meta//crypto/hash"],
 )

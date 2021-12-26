@@ -91,7 +91,7 @@ var testBreakages []testCase = []testCase{
 	},
 }
 
-func HashTest(t *testing.T) {
+func TestHash(t *testing.T) {
 
 	tests := []struct {
 		input string
@@ -115,20 +115,22 @@ func HashTest(t *testing.T) {
 
 	clock := NewService()
 
-	for _, test := range tests {
+	for id, test := range tests {
 		result, err := clock.Hash(test.input)
 		if test.pass && err != nil {
 			t.Errorf(
-				"[HashClockService] Hash(%s) resulted in error: %s ; expected %s",
+				"#%v [HashClockService] Hash(%s) resulted in error: %s ; expected %s",
+				id,
 				test.input,
 				err,
 				test.ok,
 			)
 		}
 
-		if test.ok != result.Hash {
+		if test.pass && test.ok != result.Hash {
 			t.Errorf(
-				"[HashClockService] Hash(%s) = %s ; expected %s",
+				"#%v [HashClockService] Hash(%s) = %s ; expected %s",
+				id,
 				test.input,
 				result.Hash,
 				test.ok,
@@ -137,7 +139,7 @@ func HashTest(t *testing.T) {
 	}
 }
 
-func RecHashTest(t *testing.T) {
+func TestRecHash(t *testing.T) {
 
 	tests := []struct {
 		input      string
@@ -193,11 +195,12 @@ func RecHashTest(t *testing.T) {
 
 	clock := NewService()
 
-	for _, test := range tests {
+	for id, test := range tests {
 		result, err := clock.RecHash(test.input, test.iterations)
 		if test.pass && err != nil {
 			t.Errorf(
-				"[HashClockService] RecHash(%s, %v) resulted in error: %s ; expected %s",
+				"#%v [HashClockService] RecHash(%s, %v) resulted in error: %s ; expected %s",
+				id,
 				test.input,
 				test.iterations,
 				err,
@@ -205,9 +208,10 @@ func RecHashTest(t *testing.T) {
 			)
 		}
 
-		if test.ok != result.Hash {
+		if test.pass && test.ok != result.Hash {
 			t.Errorf(
-				"[HashClockService] RecHash(%s, %v) = %s ; expected %s",
+				"#%v [HashClockService] RecHash(%s, %v) = %s ; expected %s",
+				id,
 				test.input,
 				test.iterations,
 				result.Hash,
@@ -217,7 +221,7 @@ func RecHashTest(t *testing.T) {
 	}
 }
 
-func RecHashPrintTest(t *testing.T) {
+func TestRecHashPrint(t *testing.T) {
 	tests := []struct {
 		input      string
 		iterations int
@@ -276,25 +280,27 @@ func RecHashPrintTest(t *testing.T) {
 
 	clock := NewService()
 
-	for _, test := range tests {
+	for id, test := range tests {
 		result, err := clock.RecHashPrint(test.input, test.iterations, test.breakpoint)
 		if test.pass && err != nil {
 			t.Errorf(
-				"[HashClockService] RecHashPrint(%s, %v, %v) resulted in error: %s ; expected %s",
+				"[HashClockService] RecHashPrint(%s, %v, %v) #%v resulted in error: %s ; expected %s",
 				test.input,
 				test.iterations,
 				test.breakpoint,
+				id,
 				err,
 				test.ok,
 			)
 		}
 
-		if test.ok != result.Hash {
+		if test.pass && test.ok != result.Hash {
 			t.Errorf(
-				"[HashClockService] RecHashPrint(%s, %v, %v) = %s ; expected %s",
+				"[HashClockService] RecHashPrint(%s, %v, %v) #%v  = %s ; expected %s",
 				test.input,
 				test.iterations,
 				test.breakpoint,
+				id,
 				result.Hash,
 				test.ok,
 			)
@@ -303,7 +309,7 @@ func RecHashPrintTest(t *testing.T) {
 }
 
 // This is an infinite-loop function; all tests must be breakage / error tests
-func RecHashLoopTest(t *testing.T) {
+func TestRecHashLoop(t *testing.T) {
 	tests := []struct {
 		input      string
 		breakpoint int
@@ -326,11 +332,12 @@ func RecHashLoopTest(t *testing.T) {
 
 	clock := NewService()
 
-	for _, test := range tests {
+	for id, test := range tests {
 		err := clock.RecHashLoop(test.input, test.breakpoint)
 		if test.pass && err != nil {
 			t.Errorf(
-				"[HashClockService] RecHashLoop(%s, %v) resulted in an unexpected error: %s",
+				"%v [HashClockService] RecHashLoop(%s, %v) resulted in an unexpected error: %s",
+				id,
 				test.input,
 				test.breakpoint,
 				err,
@@ -339,7 +346,7 @@ func RecHashLoopTest(t *testing.T) {
 	}
 }
 
-func RecHashTimeoutTest(t *testing.T) {
+func TestRecHashTimeout(t *testing.T) {
 
 	tests := []struct {
 		input   string
@@ -367,43 +374,48 @@ func RecHashTimeoutTest(t *testing.T) {
 
 	clock := NewService()
 
-	for _, test := range tests {
+	for id, test := range tests {
 		result, err := clock.RecHashTimeout(test.input, test.timeout)
 		if test.pass && err != nil {
 			t.Errorf(
-				"[HashClockService] RecHashTimeout(%s, %v) resulted in an unexpected error: %s",
+				"#%v [HashClockService] RecHashTimeout(%s, %v) resulted in an unexpected error: %s",
+				id,
 				test.input,
 				test.timeout,
 				err,
 			)
 		}
 
-		// verify calculated hash
-		verify, err := clock.VerifyIndex(test.input, result.Hash, result.Iterations)
-		if err != nil {
-			t.Errorf(
-				"[HashClockService] VerifyIndex(%s, %s, %v) resulted in an unexpected error: %s",
-				test.input,
-				result.Hash,
-				result.Iterations,
-				err,
-			)
-		}
+		if test.pass {
+			// verify calculated hash
+			verify, err := clock.VerifyIndex(test.input, result.Hash, result.Iterations)
+			if err != nil {
+				t.Errorf(
+					"#%v [HashClockService] VerifyIndex(%s, %s, %v) resulted in an unexpected error: %s",
+					id,
+					test.input,
+					result.Hash,
+					result.Iterations,
+					err,
+				)
+			}
 
-		if result.Hash != verify.Hash {
-			t.Errorf(
-				"[HashClockService] RecHashTimeout(%s, %v) calculated an invalid hash: %s with %v iterations. Verification expected hash %s",
-				test.input,
-				test.timeout,
-				result.Hash,
-				result.Iterations,
-				verify.Hash,
-			)
+			if result.Hash != verify.Hash {
+				t.Errorf(
+					"#%v [HashClockService] RecHashTimeout(%s, %v) calculated an invalid hash: %s with %v iterations. Verification expected hash %s",
+					id,
+					test.input,
+					test.timeout,
+					result.Hash,
+					result.Iterations,
+					verify.Hash,
+				)
+			}
 		}
 	}
 }
 
-func MatchHashTest(t *testing.T) {
+func TestMatchHash(t *testing.T) {
 	tests := []struct {
 		input      string
 		iterations int
@@ -444,7 +456,7 @@ func MatchHashTest(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for id, test := range tests {
 		hash := rsha.Hash(test.input)
 		target := []byte(test.ok)
 		enc := make([]byte, hex.EncodedLen(32))
@@ -461,7 +473,8 @@ func MatchHashTest(t *testing.T) {
 
 		if !matchHash(enc, target) {
 			t.Errorf(
-				"[HashClockService] matchHash(%s, %s) = false ; expected true",
+				"#%v [HashClockService] matchHash(%s, %s) = false ; expected true",
+				id,
 				string(enc),
 				test.ok,
 			)
