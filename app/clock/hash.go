@@ -1,7 +1,6 @@
 package clock
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -28,7 +27,7 @@ func (c *HashClockService) Hash(seed string) (*HashClockResponse, error) {
 // newHashResponse method will parse the `HashClockService.request` object
 // and build its `HashClockResponse.response` with the hash for the seed string
 func (c *HashClockService) newHashResponse() (*HashClockResponse, error) {
-	hash := hex.EncodeToString(rsha.Hash(c.request.seed))
+	hash := string(rsha.Hash(c.request.seed))
 
 	c.response = &HashClockResponse{
 		Seed:       c.request.seed,
@@ -80,7 +79,7 @@ func (c *HashClockService) newRecHashResponse() (*HashClockResponse, error) {
 		Seed:       c.request.seed,
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
-		Hash:       hex.EncodeToString(hash),
+		Hash:       string(hash),
 	}
 
 	return c.response, nil
@@ -136,7 +135,7 @@ func (c *HashClockService) newRecHashPrintResponse() (*HashClockResponse, error)
 
 		// breakpoint logging
 		if i%c.request.breakpoint == 0 {
-			fmt.Printf("#%v:\t%x\n", i, hash)
+			fmt.Printf("#%v:\t%s\n", i, string(hash))
 		}
 	}
 
@@ -144,7 +143,7 @@ func (c *HashClockService) newRecHashPrintResponse() (*HashClockResponse, error)
 		Seed:       c.request.seed,
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
-		Hash:       hex.EncodeToString(hash),
+		Hash:       string(hash),
 	}
 
 	return c.response, nil
@@ -187,7 +186,7 @@ func (c *HashClockService) RecHashLoop(seed string, breakpoint int) error {
 
 		// breakpoint logging
 		if counter%breakpoint == 0 {
-			fmt.Printf("#%v:\t%x\n", counter, hash)
+			fmt.Printf("#%v:\t%s\n", counter, string(hash))
 		}
 	}
 }
@@ -259,7 +258,7 @@ func (c *HashClockService) newRecHashTimeoutResponse() (*HashClockResponse, erro
 	done <- true
 
 	// get calculated hash and number of iterations
-	r.Hash = hex.EncodeToString(ts.hash)
+	r.Hash = string(ts.hash)
 	r.Iterations = ts.id
 
 	return r, nil

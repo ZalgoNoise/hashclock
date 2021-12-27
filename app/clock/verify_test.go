@@ -1,7 +1,6 @@
 package clock
 
 import (
-	"encoding/hex"
 	"math/rand"
 	"testing"
 
@@ -441,7 +440,6 @@ func TestMatchHash(t *testing.T) {
 	for id, test := range tests {
 		hash := rsha.Hash(test.input)
 		target := []byte(test.ok)
-		enc := make([]byte, hex.EncodedLen(32))
 
 		// index 0 is the seed
 		// index 1 is the first hash, above
@@ -450,14 +448,11 @@ func TestMatchHash(t *testing.T) {
 			hash = rsha.Hash(hash)
 		}
 
-		// hex-encode for comparison:
-		hex.Encode(enc, hash)
-
-		if !matchHash(enc, target) {
+		if !matchHash(hash, target) {
 			t.Errorf(
 				"#%v [HashClockService] matchHash(%s, %s) = false ; expected true",
 				id,
-				string(enc),
+				string(hash),
 				test.ok,
 			)
 		}
@@ -465,9 +460,9 @@ func TestMatchHash(t *testing.T) {
 		t.Logf(
 			"#%v -- TESTED -- [HashClockService] matchHash(%s, %s) = %v",
 			id,
-			string(enc),
+			string(hash),
 			test.ok,
-			matchHash(enc, target),
+			matchHash(hash, target),
 		)
 
 	}

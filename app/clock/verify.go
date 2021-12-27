@@ -54,7 +54,6 @@ func (c *HashClockService) newVerifyResponse() (*HashClockResponse, error) {
 	iterations := 0
 	hash := rsha.Hash(c.request.seed)
 	target := []byte(c.request.hash)
-	enc := make([]byte, hex.EncodedLen(32))
 
 	for {
 		if iterations > 0 {
@@ -62,15 +61,12 @@ func (c *HashClockService) newVerifyResponse() (*HashClockResponse, error) {
 		}
 		iterations++
 
-		// hex-encode for comparison:
-		hex.Encode(enc, hash)
-
-		if matchHash(enc, target) {
+		if matchHash(hash, target) {
 			c.response = &HashClockResponse{
 				Seed:       c.request.seed,
 				Timeout:    c.request.timeout,
 				Iterations: iterations,
-				Hash:       string(enc),
+				Hash:       string(hash),
 				Target:     c.request.hash,
 				Match:      true,
 				Duration:   time.Since(timestamp),
@@ -133,7 +129,6 @@ func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error
 		Target:  c.request.hash,
 	}
 	target := []byte(c.request.hash)
-	enc := make([]byte, hex.EncodedLen(32))
 
 	// recursive conversions are done with byte arrays
 	// to preserve performance, instead of constantly
@@ -160,12 +155,9 @@ func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error
 				}
 				ts.id++
 
-				// hex-encode for comparison:
-				hex.Encode(enc, ts.hash)
-
-				if matchHash(enc, target) {
+				if matchHash(ts.hash, target) {
 					c.response.Iterations = ts.id
-					c.response.Hash = string(enc)
+					c.response.Hash = string(ts.hash)
 					c.response.Match = true
 
 					return
@@ -191,7 +183,7 @@ func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error
 
 	c.response = &HashClockResponse{
 		Iterations: ts.id,
-		Hash:       string(enc),
+		Hash:       string(ts.hash),
 		Match:      false,
 	}
 
@@ -248,7 +240,6 @@ func (c *HashClockService) newVerifyIndexResponse() (*HashClockResponse, error) 
 
 	hash := rsha.Hash(c.request.seed)
 	target := []byte(c.request.hash)
-	enc := make([]byte, hex.EncodedLen(32))
 
 	// index starts at 2 since:
 	// - index 0 is the seed
@@ -257,19 +248,16 @@ func (c *HashClockService) newVerifyIndexResponse() (*HashClockResponse, error) 
 		hash = rsha.Hash(hash)
 	}
 
-	// hex-encode for comparison:
-	hex.Encode(enc, hash)
-
 	c.response = &HashClockResponse{
 		Seed:       c.request.seed,
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
-		Hash:       string(enc),
+		Hash:       string(hash),
 		Target:     c.request.hash,
 		Duration:   time.Since(timestamp),
 	}
 
-	if matchHash(enc, target) {
+	if matchHash(hash, target) {
 		c.response.Match = true
 		return c.response, nil
 	}
