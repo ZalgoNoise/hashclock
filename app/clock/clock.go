@@ -7,12 +7,14 @@ package clock
 
 import (
 	"time"
+
+	rhash "github.com/ZalgoNoise/meta/crypto/hash"
 )
 
 // HashClockRequest struct defines the input configuration for
 // a `HashClockService` request
 type HashClockRequest struct {
-	seed       string
+	seed       []byte
 	iterations int
 	breakpoint int
 	timeout    int
@@ -37,6 +39,7 @@ type HashClockResponse struct {
 type HashClockService struct {
 	request  *HashClockRequest
 	response *HashClockResponse
+	hasher   rhash.Hasher
 }
 
 // NewService function is a generic public function to spawn a
@@ -51,6 +54,9 @@ func NewService() *HashClockService {
 	c.request.iterations = 1
 	c.request.breakpoint = 1
 	c.request.timeout = 0
+
+	// initialize hasher
+	c.hasher = &rhash.SHA256{}
 
 	return c
 }

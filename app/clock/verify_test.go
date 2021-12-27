@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"testing"
 
-	rsha "github.com/ZalgoNoise/meta/crypto/hash"
+	rhash "github.com/ZalgoNoise/meta/crypto/hash"
 )
 
 type verificationCase struct {
@@ -437,15 +437,17 @@ func TestMatchHash(t *testing.T) {
 		},
 	}
 
+	h := rhash.SHA256{}
+
 	for id, test := range tests {
-		hash := rsha.Hash(test.input)
+		hash := h.Hash([]byte(test.input))
 		target := []byte(test.ok)
 
 		// index 0 is the seed
 		// index 1 is the first hash, above
 		// rehashing index starts at 2
 		for i := 2; i <= test.iterations; i++ {
-			hash = rsha.Hash(hash)
+			hash = h.Hash(hash)
 		}
 
 		if !matchHash(hash, target) {

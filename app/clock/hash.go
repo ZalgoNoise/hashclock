@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	rsha "github.com/ZalgoNoise/meta/crypto/hash"
 )
 
 // Hash method takes in a string to hash, returning an execution of the
@@ -16,7 +14,7 @@ func (c *HashClockService) Hash(seed string) (*HashClockResponse, error) {
 		return &HashClockResponse{}, errors.New("seed cannot be empty")
 	}
 
-	c.request.seed = seed
+	c.request.seed = []byte(seed)
 	c.request.iterations = 1
 	c.request.breakpoint = 1
 	c.request.timeout = 0
@@ -27,10 +25,11 @@ func (c *HashClockService) Hash(seed string) (*HashClockResponse, error) {
 // newHashResponse method will parse the `HashClockService.request` object
 // and build its `HashClockResponse.response` with the hash for the seed string
 func (c *HashClockService) newHashResponse() (*HashClockResponse, error) {
-	hash := string(rsha.Hash(c.request.seed))
+
+	hash := string(c.hasher.Hash(c.request.seed))
 
 	c.response = &HashClockResponse{
-		Seed:       c.request.seed,
+		Seed:       string(c.request.seed),
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
 		Hash:       hash,
@@ -52,7 +51,7 @@ func (c *HashClockService) RecHash(seed string, iter int) (*HashClockResponse, e
 		return &HashClockResponse{}, errors.New("number of iterations has to be greater than zero")
 	}
 
-	c.request.seed = seed
+	c.request.seed = []byte(seed)
 	c.request.iterations = iter
 	c.request.breakpoint = 0
 	c.request.timeout = 0
@@ -69,14 +68,14 @@ func (c *HashClockService) newRecHashResponse() (*HashClockResponse, error) {
 	// recursive SHA256 hash
 	for i := 1; i <= c.request.iterations; i++ {
 		if i == 1 {
-			hash = rsha.Hash(c.request.seed)
+			hash = c.hasher.Hash(c.request.seed)
 		} else {
-			hash = rsha.Hash(hash)
+			hash = c.hasher.Hash(hash)
 		}
 	}
 
 	c.response = &HashClockResponse{
-		Seed:       c.request.seed,
+		Seed:       string(c.request.seed),
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
 		Hash:       string(hash),
@@ -108,7 +107,7 @@ func (c *HashClockService) RecHashPrint(seed string, iter int, breakpoint int) (
 		return &HashClockResponse{}, errors.New("invalid function call -- HashClockService.RecHashPrint() needs to be called with a breakpoint > 0. method RecHash() should be used instead")
 	}
 
-	c.request.seed = seed
+	c.request.seed = []byte(seed)
 	c.request.iterations = iter
 	c.request.breakpoint = breakpoint
 	c.request.timeout = 0
@@ -128,9 +127,9 @@ func (c *HashClockService) newRecHashPrintResponse() (*HashClockResponse, error)
 	// recursive SHA256 hash
 	for i := 1; i <= c.request.iterations; i++ {
 		if i == 1 {
-			hash = rsha.Hash(c.request.seed)
+			hash = c.hasher.Hash(c.request.seed)
 		} else {
-			hash = rsha.Hash(hash)
+			hash = c.hasher.Hash(hash)
 		}
 
 		// breakpoint logging
@@ -140,7 +139,7 @@ func (c *HashClockService) newRecHashPrintResponse() (*HashClockResponse, error)
 	}
 
 	c.response = &HashClockResponse{
-		Seed:       c.request.seed,
+		Seed:       string(c.request.seed),
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
 		Hash:       string(hash),
@@ -171,17 +170,17 @@ func (c *HashClockService) RecHashLoop(seed string, breakpoint int) error {
 		return errors.New("logging frequency cannot be zero or below")
 	}
 
-	c.request.seed = seed
+	c.request.seed = []byte(seed)
 	c.request.iterations = 0
 	c.request.breakpoint = breakpoint
 	c.request.timeout = 0
 
-	hash := rsha.Hash(seed)
+	hash := c.hasher.Hash([]byte(seed))
 
 	var counter int = 1
 
 	for {
-		hash = rsha.Hash(hash)
+		hash = c.hasher.Hash(hash)
 		counter++
 
 		// breakpoint logging
@@ -204,7 +203,7 @@ func (c *HashClockService) RecHashTimeout(seed string, timeout int) (*HashClockR
 		return &HashClockResponse{}, errors.New("timeout cannot be zero or below")
 	}
 
-	c.request.seed = seed
+	c.request.seed = []byte(seed)
 	c.request.iterations = 0
 	c.request.breakpoint = 0
 	c.request.timeout = timeout
@@ -221,7 +220,7 @@ func (c *HashClockService) RecHashTimeout(seed string, timeout int) (*HashClockR
 // object
 func (c *HashClockService) newRecHashTimeoutResponse() (*HashClockResponse, error) {
 	r := &HashClockResponse{}
-	r.Seed = c.request.seed
+	r.Seed = string(c.request.seed)
 	r.Timeout = c.request.timeout
 
 	// recursive conversions are done with byte arrays
@@ -238,7 +237,7 @@ func (c *HashClockService) newRecHashTimeoutResponse() (*HashClockResponse, erro
 	// recursively calculate hashes until timer is up
 	go func() {
 
-		ts.hash = rsha.Hash(c.request.seed)
+		ts.hash = c.hasher.Hash(c.request.seed)
 		ts.id = 1
 
 		for {
@@ -246,7 +245,7 @@ func (c *HashClockService) newRecHashTimeoutResponse() (*HashClockResponse, erro
 			case <-done:
 				return
 			default:
-				ts.hash = rsha.Hash(ts.hash)
+				ts.hash = c.hasher.Hash(ts.hash)
 				ts.id++
 			}
 		}

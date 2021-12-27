@@ -24,8 +24,8 @@ load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 go_repository(
     name = "com_github_zalgonoise_meta",
     importpath = "github.com/ZalgoNoise/meta",
-    sum = "h1:GsNLpqotSdtlN+habbH6gn0pYo99Xf1B8C9UomUDWdE=",
-    version = "v0.0.0-20211227114906-04f9ea8fbfa5",
+    sum = "h1:fN0wl27SBfwS3QK1cH5uEfy9v5bWe5EfNZJ7A/DKJ3c=",
+    version = "v0.0.0-20211227132952-ffac4c184ca8",
 )
 
 go_rules_dependencies()

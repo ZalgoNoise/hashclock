@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	rsha "github.com/ZalgoNoise/meta/crypto/hash"
+	// rhash "github.com/ZalgoNoise/meta/crypto/hash"
 )
 
 // Verify method will take in a seed string and a target hash,
@@ -32,7 +31,7 @@ func (c *HashClockService) Verify(seed string, hash string) (*HashClockResponse,
 		return &HashClockResponse{}, errors.New("seed cannot be the same as the hash (no verification involved)")
 	}
 
-	c.request.seed = seed
+	c.request.seed = []byte(seed)
 	c.request.iterations = 0
 	c.request.breakpoint = 0
 	c.request.timeout = 0
@@ -52,18 +51,18 @@ func (c *HashClockService) newVerifyResponse() (*HashClockResponse, error) {
 	timestamp := time.Now()
 
 	iterations := 0
-	hash := rsha.Hash(c.request.seed)
+	hash := c.hasher.Hash(c.request.seed)
 	target := []byte(c.request.hash)
 
 	for {
 		if iterations > 0 {
-			hash = rsha.Hash(hash)
+			hash = c.hasher.Hash(hash)
 		}
 		iterations++
 
 		if matchHash(hash, target) {
 			c.response = &HashClockResponse{
-				Seed:       c.request.seed,
+				Seed:       string(c.request.seed),
 				Timeout:    c.request.timeout,
 				Iterations: iterations,
 				Hash:       string(hash),
@@ -106,7 +105,7 @@ func (c *HashClockService) VerifyTimeout(seed, hash string, timeout int) (*HashC
 		return &HashClockResponse{}, errors.New("timeout cannot be zero or below")
 	}
 
-	c.request.seed = seed
+	c.request.seed = []byte(seed)
 	c.request.iterations = 0
 	c.request.breakpoint = 0
 	c.request.timeout = timeout
@@ -124,7 +123,7 @@ func (c *HashClockService) VerifyTimeout(seed, hash string, timeout int) (*HashC
 // 10ms. This does not affect performance when compared to 100ms, for instance.
 func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error) {
 	c.response = &HashClockResponse{
-		Seed:    c.request.seed,
+		Seed:    string(c.request.seed),
 		Timeout: c.request.timeout,
 		Target:  c.request.hash,
 	}
@@ -139,7 +138,7 @@ func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error
 	}
 
 	ts := timestamp{
-		hash: rsha.Hash(c.request.seed),
+		hash: c.hasher.Hash(c.request.seed),
 		id:   0,
 	}
 	done := make(chan bool)
@@ -151,7 +150,7 @@ func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error
 				return
 			default:
 				if ts.id > 0 {
-					ts.hash = rsha.Hash(ts.hash)
+					ts.hash = c.hasher.Hash(ts.hash)
 				}
 				ts.id++
 
@@ -219,7 +218,7 @@ func (c *HashClockService) VerifyIndex(seed string, hash string, iterations int)
 		return &HashClockResponse{}, errors.New("number of target iterations cannot be zero or below")
 	}
 
-	c.request.seed = seed
+	c.request.seed = []byte(seed)
 	c.request.iterations = iterations
 	c.request.breakpoint = 0
 	c.request.timeout = 0
@@ -238,18 +237,18 @@ func (c *HashClockService) newVerifyIndexResponse() (*HashClockResponse, error) 
 	// timestamp is recorded when function is first called
 	timestamp := time.Now()
 
-	hash := rsha.Hash(c.request.seed)
+	hash := c.hasher.Hash(c.request.seed)
 	target := []byte(c.request.hash)
 
 	// index starts at 2 since:
 	// - index 0 is the seed
 	// - index 1 is the first hash calculated (above)
 	for i := 2; i <= c.request.iterations; i++ {
-		hash = rsha.Hash(hash)
+		hash = c.hasher.Hash(hash)
 	}
 
 	c.response = &HashClockResponse{
-		Seed:       c.request.seed,
+		Seed:       string(c.request.seed),
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
 		Hash:       string(hash),
