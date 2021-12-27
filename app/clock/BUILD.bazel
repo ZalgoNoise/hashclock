@@ -14,7 +14,10 @@ go_library(
 
 go_test(
     name = "clock_test",
-    srcs = ["hash_test.go"],
+    srcs = [
+        "hash_test.go",
+        "verify_test.go",
+    ],
     args = ["-test.v"],
     embed = [":clock"],
     deps = ["@com_github_zalgonoise_meta//crypto/hash"],

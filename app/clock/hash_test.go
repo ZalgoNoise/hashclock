@@ -1,10 +1,7 @@
 package clock
 
 import (
-	"encoding/hex"
 	"testing"
-
-	rsha "github.com/ZalgoNoise/meta/crypto/hash"
 )
 
 type testCase struct {
@@ -89,6 +86,22 @@ var testBreakages []testCase = []testCase{
 		hash:       "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
 		timeout:    0,
 	},
+
+	// invalid hash string (hex encoding) case
+	{
+		seed:       "Hello World!",
+		iterations: 1,
+		hash:       "zzz3b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+		timeout:    0,
+	},
+
+	// string == hash case
+	{
+		seed:       "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+		iterations: 1,
+		hash:       "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+		timeout:    0,
+	},
 }
 
 func TestHash(t *testing.T) {
@@ -127,12 +140,21 @@ func TestHash(t *testing.T) {
 			)
 		}
 
-		if test.pass && test.ok != result.Hash {
-			t.Errorf(
-				"#%v [HashClockService] Hash(%s) = %s ; expected %s",
+		if test.pass {
+			if test.ok != result.Hash {
+				t.Errorf(
+					"#%v [HashClockService] Hash(%s) = %s ; expected %s",
+					id,
+					test.input,
+					result.Hash,
+					test.ok,
+				)
+			}
+
+			t.Logf(
+				"#%v -- TESTED -- [HashClockService] Hash(%s) = %s",
 				id,
 				test.input,
-				result.Hash,
 				test.ok,
 			)
 		}
@@ -208,13 +230,23 @@ func TestRecHash(t *testing.T) {
 			)
 		}
 
-		if test.pass && test.ok != result.Hash {
-			t.Errorf(
-				"#%v [HashClockService] RecHash(%s, %v) = %s ; expected %s",
+		if test.pass {
+			if test.ok != result.Hash {
+				t.Errorf(
+					"#%v [HashClockService] RecHash(%s, %v) = %s ; expected %s",
+					id,
+					test.input,
+					test.iterations,
+					result.Hash,
+					test.ok,
+				)
+			}
+
+			t.Logf(
+				"#%v -- TESTED -- [HashClockService] RecHash(%s, %v) = %s",
 				id,
 				test.input,
 				test.iterations,
-				result.Hash,
 				test.ok,
 			)
 		}
@@ -284,24 +316,34 @@ func TestRecHashPrint(t *testing.T) {
 		result, err := clock.RecHashPrint(test.input, test.iterations, test.breakpoint)
 		if test.pass && err != nil {
 			t.Errorf(
-				"[HashClockService] RecHashPrint(%s, %v, %v) #%v resulted in error: %s ; expected %s",
+				"#%v [HashClockService] RecHashPrint(%s, %v, %v) resulted in error: %s ; expected %s",
+				id,
 				test.input,
 				test.iterations,
 				test.breakpoint,
-				id,
 				err,
 				test.ok,
 			)
 		}
 
-		if test.pass && test.ok != result.Hash {
-			t.Errorf(
-				"[HashClockService] RecHashPrint(%s, %v, %v) #%v  = %s ; expected %s",
+		if test.pass {
+			if test.ok != result.Hash {
+				t.Errorf(
+					"#%v [HashClockService] RecHashPrint(%s, %v, %v) = %s ; expected %s",
+					id,
+					test.input,
+					test.iterations,
+					test.breakpoint,
+					result.Hash,
+					test.ok,
+				)
+			}
+			t.Logf(
+				"#%v -- TESTED -- [HashClockService] RecHashPrint(%s, %v, %v) = %s",
+				id,
 				test.input,
 				test.iterations,
 				test.breakpoint,
-				id,
-				result.Hash,
 				test.ok,
 			)
 		}
@@ -343,6 +385,13 @@ func TestRecHashLoop(t *testing.T) {
 				err,
 			)
 		}
+		t.Logf(
+			"#%v -- TESTED -- [HashClockService] RecHashLoop(%s, %v) = %s",
+			id,
+			test.input,
+			test.breakpoint,
+			err,
+		)
 	}
 }
 
@@ -411,74 +460,15 @@ func TestRecHashTimeout(t *testing.T) {
 					verify.Hash,
 				)
 			}
-		}
-	}
-}
 
-func TestMatchHash(t *testing.T) {
-	tests := []struct {
-		input      string
-		iterations int
-		ok         string
-	}{
-		{
-			input:      testCases[0].seed,
-			iterations: testCases[0].iterations,
-			ok:         testCases[0].hash,
-		}, {
-			input:      testCases[1].seed,
-			iterations: testCases[1].iterations,
-			ok:         testCases[1].hash,
-		}, {
-			input:      testCases[2].seed,
-			iterations: testCases[2].iterations,
-			ok:         testCases[2].hash,
-		}, {
-			input:      testCases[3].seed,
-			iterations: testCases[3].iterations,
-			ok:         testCases[3].hash,
-		}, {
-			input:      testCases[4].seed,
-			iterations: testCases[4].iterations,
-			ok:         testCases[4].hash,
-		}, {
-			input:      testCases[5].seed,
-			iterations: testCases[5].iterations,
-			ok:         testCases[5].hash,
-		}, {
-			input:      testCases[6].seed,
-			iterations: testCases[6].iterations,
-			ok:         testCases[6].hash,
-		}, {
-			input:      testCases[7].seed,
-			iterations: testCases[7].iterations,
-			ok:         testCases[7].hash,
-		},
-	}
-
-	for id, test := range tests {
-		hash := rsha.Hash(test.input)
-		target := []byte(test.ok)
-		enc := make([]byte, hex.EncodedLen(32))
-
-		// index 0 is the seed
-		// index 1 is the first hash, above
-		// rehashing index starts at 2
-		for i := 2; i <= test.iterations; i++ {
-			hash = rsha.Hash(hash)
-		}
-
-		// hex-encode for comparison:
-		hex.Encode(enc, hash)
-
-		if !matchHash(enc, target) {
-			t.Errorf(
-				"#%v [HashClockService] matchHash(%s, %s) = false ; expected true",
+			t.Logf(
+				"#%v -- TESTED -- [HashClockService] RecHashTimeout(%s, %v) = %s with %v iterations",
 				id,
-				string(enc),
-				test.ok,
+				test.input,
+				test.timeout,
+				result.Hash,
+				result.Iterations,
 			)
 		}
-
 	}
 }
