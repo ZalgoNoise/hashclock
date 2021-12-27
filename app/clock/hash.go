@@ -26,13 +26,13 @@ func (c *HashClockService) Hash(seed string) (*HashClockResponse, error) {
 // and build its `HashClockResponse.response` with the hash for the seed string
 func (c *HashClockService) newHashResponse() (*HashClockResponse, error) {
 
-	hash := string(c.hasher.Hash(c.request.seed))
+	hash := c.hasher.Hash(c.request.seed)
 
 	c.response = &HashClockResponse{
 		Seed:       string(c.request.seed),
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
-		Hash:       hash,
+		Hash:       string(hash),
 	}
 
 	return c.response, nil
