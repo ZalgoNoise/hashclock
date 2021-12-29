@@ -3,6 +3,22 @@ name: Bazel-CI
 on: [push, pull_request]
 
 jobs:
+  gazelle:
+    
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v2
+    - uses: bazelbuild/setup-bazelisk@v1
+    - name: Mount bazel cache  
+      uses: actions/cache@v2
+      with:
+        path: "~/.cache/bazel"
+        key: bazel
+    - run: cd app && bazel run //:gazelle --
+    - run: cd app && bazel run //:gazelle -- update-repos -from_file=go.mod
+
   bazel-build:
     
     runs-on: ubuntu-latest
