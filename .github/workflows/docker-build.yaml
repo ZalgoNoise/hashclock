@@ -1,13 +1,13 @@
-name: CI
+name: Dockerfile-CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, pull_request ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, pull_request ]
 
 jobs:
-  build:
+  docker-build:
     runs-on: ubuntu-latest
 
     steps:
