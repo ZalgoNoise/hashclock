@@ -1,0 +1,76 @@
+name: Bazel-CD
+
+on:
+  push:
+    branches: [ master ]
+    
+env:
+  GHREGISTRY: ghcr.io
+  DHREGISTRY: docker.io
+  IMAGE_AUTHOR: zalgonoise
+  IMAGE_NAME: hashclock
+
+jobs:
+  push-to-ghcr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Log in to GitHub Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.GHREGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.PACKAGES_TOKEN }}
+          
+      - name: Deploy bazelisk
+        uses: bazelbuild/setup-bazelisk@v1
+
+      - name: Mount bazel cache  
+        uses: actions/cache@v2
+        with:
+          path: "~/.cache/bazel"
+          key: bazel
+          
+      - name: Build container
+        run: cd app && bazel build //:latest
+          
+      - name: Run gazelle
+        run: cd app && bazel run //:github-push
+        
+  push-to-docker-io:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.DHREGISTRY }}
+          username: ${{ env.IMAGE_AUTHOR }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+          
+      - name: Deploy bazelisk
+        uses: bazelbuild/setup-bazelisk@v1
+
+      - name: Mount bazel cache  
+        uses: actions/cache@v2
+        with:
+          path: "~/.cache/bazel"
+          key: bazel
+          
+      - name: Build container
+        run: cd app && bazel build //:latest
+          
+      - name: Run gazelle
+        run: cd app && bazel run //:dockerhub-push        
