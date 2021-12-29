@@ -9,15 +9,22 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v2
-    - uses: bazelbuild/setup-bazelisk@v1
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Deploy bazelisk
+      uses: bazelbuild/setup-bazelisk@v1
+      
     - name: Mount bazel cache  
       uses: actions/cache@v2
       with:
         path: "~/.cache/bazel"
         key: bazel
-    - run: cd app && bazel run //:gazelle --
-    - run: cd app && bazel run //:gazelle -- update-repos -from_file=go.mod
+    - name: Run gazelle
+      run: cd app && bazel run //:gazelle --
+      
+    - name: Run gazelle w/ update-repos flag
+      run: cd app && bazel run //:gazelle -- update-repos -from_file=go.mod
 
   bazel-build:
     
@@ -25,14 +32,19 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v2
-    - uses: bazelbuild/setup-bazelisk@v1
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Deploy bazelisk
+      uses: bazelbuild/setup-bazelisk@v1
+      
     - name: Mount bazel cache  
       uses: actions/cache@v2
       with:
         path: "~/.cache/bazel"
         key: bazel
-    - run: cd app && bazel build //...
+    - name: Build project
+      run: cd app && bazel build //...
     
   bazel-test:
     
@@ -40,14 +52,19 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v2
-    - uses: bazelbuild/setup-bazelisk@v1
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Deploy bazelisk
+      uses: bazelbuild/setup-bazelisk@v1
+      
     - name: Mount bazel cache  
       uses: actions/cache@v2
       with:
         path: "~/.cache/bazel"
         key: bazel
-    - run: cd app && bazel test --test_output=all --test_summary=detailed --cache_test_results=no //...
+    - name: Run tests (verbose)
+      run: cd app && bazel test --test_output=all --test_summary=detailed --cache_test_results=no //...
     
   bazel-run:
     
@@ -55,11 +72,16 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v2
-    - uses: bazelbuild/setup-bazelisk@v1
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Deploy bazelisk
+      uses: bazelbuild/setup-bazelisk@v1
+      
     - name: Mount bazel cache  
       uses: actions/cache@v2
       with:
         path: "~/.cache/bazel"
         key: bazel
-    - run: cd app && bazel run //:hashclock -- -seed hashclock -iter 10 -log 1
+    - name: Runtime test
+      run: cd app && bazel run //:hashclock -- -seed hashclock -iter 10 -log 1
