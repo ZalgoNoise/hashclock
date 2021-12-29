@@ -17,5 +17,4 @@ jobs:
       with:
         path: "~/.cache/bazel"
         key: bazel
-    - run: cd app
-    - run: bazel build //...
+    - run: cd app && bazel build //...
