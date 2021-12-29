@@ -1,8 +1,8 @@
 name: Bazel-CD
 
-on: push
-#   push:
-#     branches: [ master ]
+on:
+  push:
+    branches: [ master ]
     
 env:
   GHREGISTRY: ghcr.io
@@ -40,7 +40,7 @@ jobs:
       - name: Build container
         run: cd app && bazel build //:latest
           
-      - name: Run gazelle
+      - name: Push latest version to ghcr.io
         run: cd app && bazel run //:github-push
         
   push-to-docker-io:
@@ -72,5 +72,5 @@ jobs:
       - name: Build container
         run: cd app && bazel build //:latest
           
-      - name: Run gazelle
+      - name: Push latest version to docker.io
         run: cd app && bazel run //:dockerhub-push        
