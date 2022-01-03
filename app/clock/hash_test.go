@@ -472,3 +472,12 @@ func TestRecHashTimeout(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkRecHashService(b *testing.B) {
+	cService := NewService()
+	_, err := cService.RecHash("hashclock", b.N)
+	if err != nil {
+		panic(err)
+	}
+
+}

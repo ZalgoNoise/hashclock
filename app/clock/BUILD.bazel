@@ -22,3 +22,22 @@ go_test(
     embed = [":clock"],
     deps = ["@com_github_zalgonoise_meta//crypto/hash"],
 )
+
+go_test(
+    name = "clock_benchmark",
+    srcs = [
+        "hash_test.go",
+    ],
+    args = [
+        "-test.v", 
+        "-test.benchmem", 
+        "-test.run", 
+        "clock/hash_test.go", 
+        "-test.bench", 
+        "BenchmarkRecHashService",
+        "-test.count",
+        "5",
+    ],
+    embed = [":clock"],
+    deps = ["@com_github_zalgonoise_meta//crypto/hash"],
+)
