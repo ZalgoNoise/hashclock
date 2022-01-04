@@ -11,6 +11,28 @@ import (
 	rhash "github.com/ZalgoNoise/meta/crypto/hash"
 )
 
+var HasherMap = map[int]rhash.Hasher{
+	0: rhash.MD5{},
+	1: rhash.SHA1{},
+	2: rhash.SHA224{},
+	3: rhash.SHA256{},
+	4: rhash.SHA384{},
+	5: rhash.SHA512{},
+	6: rhash.SHA512_224{},
+	7: rhash.SHA512_256{},
+}
+
+var HasherMapKeys = map[string]int{
+	"MD5":        0,
+	"SHA1":       1,
+	"SHA224":     2,
+	"SHA256":     3,
+	"SHA384":     4,
+	"SHA512":     5,
+	"SHA512_224": 6,
+	"SHA512_256": 7,
+}
+
 // HashClockRequest struct defines the input configuration for
 // a `HashClockService` request
 type HashClockRequest struct {
@@ -55,8 +77,8 @@ func NewService() *HashClockService {
 	c.request.breakpoint = 1
 	c.request.timeout = 0
 
-	// initialize hasher
-	c.hasher = &rhash.SHA256{}
+	// initialize default hasher
+	c.hasher = HasherMap[3]
 
 	return c
 }
