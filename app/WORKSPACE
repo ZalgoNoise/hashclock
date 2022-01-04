@@ -34,8 +34,8 @@ gazelle_dependencies()
 go_repository(
     name = "com_github_zalgonoise_meta",
     importpath = "github.com/ZalgoNoise/meta",
-    sum = "h1:fN0wl27SBfwS3QK1cH5uEfy9v5bWe5EfNZJ7A/DKJ3c=",
-    version = "v0.0.0-20211227132952-ffac4c184ca8",
+    sum = "h1:lXX6aaDvGn6ARKdoWbpekJd+DmWRrOiaKFKJcHrH9t0=",
+    version = "v0.0.0-20220103001044-3866e2839f38",
 )
 
 ## buildifier
