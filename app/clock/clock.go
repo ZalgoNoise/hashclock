@@ -73,7 +73,7 @@ type HashClockService struct {
 func NewService() *HashClockService {
 	c := &HashClockService{}
 
-	// initialize req 
+	// initialize req
 	c.request = &HashClockRequest{}
 
 	// set default values
