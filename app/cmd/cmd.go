@@ -32,12 +32,14 @@ func printJSON(res *clock.HashClockResponse) {
 		Target     string `json:"target,omitempty"`
 		Match      bool   `json:"match,omitempty"`
 		Duration   string `json:"duration,omitempty"`
+		Algorithm  string `json:"algorithm,omitempty"`
 	}
 
 	o := &output{}
 
 	o.Seed = res.Seed
 	o.Hash = res.Hash
+	o.Algorithm = res.Algorithm
 
 	if res.Iterations > 0 {
 		o.Iterations = res.Iterations
@@ -75,6 +77,7 @@ func printText(res *clock.HashClockResponse) {
 		t   string = "target: "
 		m   string = "match: "
 		d   string = "duration: "
+		a   string = "algo: "
 		sp  string = "; "
 		nl  string = "\n"
 	)
@@ -100,6 +103,8 @@ func printText(res *clock.HashClockResponse) {
 	if res.Duration > 0 {
 		out += d + res.Duration.String() + sp
 	}
+
+	out += a + res.Algorithm + sp
 
 	out += nl + pad + nl + res.Hash + nl + pad + nl
 

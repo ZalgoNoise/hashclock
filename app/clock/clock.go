@@ -49,6 +49,7 @@ type HashClockRequest struct {
 // a `HashClockService` response
 type HashClockResponse struct {
 	Seed       string `json:"seed,omitempty"`
+	Algorithm  string `json:"algorithm,omitempty"`
 	Timeout    int    `json:"timeout,omitempty"`
 	Iterations int    `json:"iterations,omitempty"`
 	Hash       string `json:"hash,omitempty"`
@@ -89,6 +90,7 @@ func (s *HashClockService) setHasher(input int) error {
 	switch {
 	case input >= 0 && input < len(HasherMap):
 		s.hasher = HasherMap[input]
+		s.response.Algorithm = HasherMapVals[input]
 		return nil
 	default:
 		return errors.New("invalid hasher reference")
