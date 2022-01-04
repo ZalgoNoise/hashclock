@@ -222,9 +222,11 @@ func (c *HashClockService) RecHashTimeout(seed string, timeout int) (*HashClockR
 // calculated hash and number of iterations are parsed into the `HashClockResponse.response`
 // object
 func (c *HashClockService) newRecHashTimeoutResponse() (*HashClockResponse, error) {
-	r := &HashClockResponse{}
-	r.Seed = string(c.request.seed)
-	r.Timeout = c.request.timeout
+	r := &HashClockResponse{
+		Seed:      string(c.request.seed),
+		Timeout:   c.request.timeout,
+		Algorithm: c.request.algorithm,
+	}
 
 	// recursive conversions are done with byte arrays
 	// to preserve performance, instead of constantly
