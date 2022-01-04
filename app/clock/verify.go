@@ -69,6 +69,7 @@ func (c *HashClockService) newVerifyResponse() (*HashClockResponse, error) {
 				Target:     c.request.hash,
 				Match:      true,
 				Duration:   time.Since(timestamp),
+				Algorithm:  c.request.algorithm,
 			}
 
 			return c.response, nil
@@ -126,6 +127,7 @@ func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error
 		Seed:    string(c.request.seed),
 		Timeout: c.request.timeout,
 		Target:  c.request.hash,
+		Algorithm:  c.request.algorithm,
 	}
 	target := []byte(c.request.hash)
 
@@ -184,6 +186,7 @@ func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error
 		Iterations: ts.id,
 		Hash:       string(ts.hash),
 		Match:      false,
+		Algorithm:  c.request.algorithm,
 	}
 
 	return c.response, nil
@@ -254,6 +257,7 @@ func (c *HashClockService) newVerifyIndexResponse() (*HashClockResponse, error) 
 		Hash:       string(hash),
 		Target:     c.request.hash,
 		Duration:   time.Since(timestamp),
+		Algorithm:  c.request.algorithm,
 	}
 
 	if matchHash(hash, target) {
