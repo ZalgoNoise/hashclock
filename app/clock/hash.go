@@ -33,6 +33,7 @@ func (c *HashClockService) newHashResponse() (*HashClockResponse, error) {
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
 		Hash:       string(hash),
+		Algorithm:  c.request.algorithm,
 	}
 
 	return c.response, nil
@@ -79,6 +80,7 @@ func (c *HashClockService) newRecHashResponse() (*HashClockResponse, error) {
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
 		Hash:       string(hash),
+		Algorithm:  c.request.algorithm,
 	}
 
 	return c.response, nil
@@ -143,6 +145,7 @@ func (c *HashClockService) newRecHashPrintResponse() (*HashClockResponse, error)
 		Timeout:    c.request.timeout,
 		Iterations: c.request.iterations,
 		Hash:       string(hash),
+		Algorithm:  c.request.algorithm,
 	}
 
 	return c.response, nil

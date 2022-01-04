@@ -43,6 +43,7 @@ type HashClockRequest struct {
 	breakpoint int
 	timeout    int
 	hash       string
+	algorithm  string
 }
 
 // HashClockResponse struct defines the input configuration for
@@ -72,7 +73,7 @@ type HashClockService struct {
 func NewService() *HashClockService {
 	c := &HashClockService{}
 
-	// initialize req
+	// initialize req 
 	c.request = &HashClockRequest{}
 
 	// set default values
@@ -90,7 +91,7 @@ func (s *HashClockService) setHasher(input int) error {
 	switch {
 	case input >= 0 && input < len(HasherMap):
 		s.hasher = HasherMap[input]
-		s.response.Algorithm = HasherMapVals[input]
+		s.request.algorithm = HasherMapVals[input]
 		return nil
 	default:
 		return errors.New("invalid hasher reference")
