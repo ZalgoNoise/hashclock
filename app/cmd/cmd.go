@@ -118,7 +118,14 @@ func printText(res *clock.HashClockResponse) {
 // `printResponse` function
 func Run() {
 	cfg := flags.NewConfig()
+
+	// configure service with input algorithm
 	cService := clock.NewService()
+	err := cService.SetHasher(cfg.Algorithm)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 
 	if cfg.Seed == "" {
 		fmt.Println("input seed string is undefined")
