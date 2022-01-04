@@ -6,6 +6,8 @@
 package clock
 
 import (
+	"errors"
+	"strings"
 	"time"
 
 	rhash "github.com/ZalgoNoise/meta/crypto/hash"
@@ -22,15 +24,15 @@ var HasherMap = map[int]rhash.Hasher{
 	7: rhash.SHA512_256{},
 }
 
-var HasherMapKeys = map[string]int{
-	"MD5":        0,
-	"SHA1":       1,
-	"SHA224":     2,
-	"SHA256":     3,
-	"SHA384":     4,
-	"SHA512":     5,
-	"SHA512_224": 6,
-	"SHA512_256": 7,
+var HasherMapVals = map[int]string{
+	0: "MD5",
+	1: "SHA1",
+	2: "SHA224",
+	3: "SHA256",
+	4: "SHA384",
+	5: "SHA512",
+	6: "SHA512_224",
+	7: "SHA512_256",
 }
 
 // HashClockRequest struct defines the input configuration for
@@ -81,4 +83,24 @@ func NewService() *HashClockService {
 	c.hasher = HasherMap[3]
 
 	return c
+}
+
+func (s *HashClockService) SetHasher(input int) error {
+	switch {
+	case input >= 0 && input < len(HasherMap):
+		s.hasher = HasherMap[input]
+		return nil
+	default:
+		return errors.New("invalid hasher reference")
+	}
+}
+
+func (s *HashClockService) SetHasherString(input string) error {
+	for idx := 0; idx < len(HasherMapVals); idx++ {
+		if input == HasherMapVals[idx] || input == strings.ToLower(HasherMapVals[idx]) {
+			s.SetHasher(idx)
+			return nil
+		}
+	}
+	return errors.New("invalid hasher reference")
 }
