@@ -85,7 +85,7 @@ func NewService() *HashClockService {
 	return c
 }
 
-func (s *HashClockService) SetHasher(input int) error {
+func (s *HashClockService) setHasher(input int) error {
 	switch {
 	case input >= 0 && input < len(HasherMap):
 		s.hasher = HasherMap[input]
@@ -95,10 +95,13 @@ func (s *HashClockService) SetHasher(input int) error {
 	}
 }
 
-func (s *HashClockService) SetHasherString(input string) error {
+func (s *HashClockService) SetHasher(input string) error {
 	for idx := 0; idx < len(HasherMapVals); idx++ {
 		if input == HasherMapVals[idx] || input == strings.ToLower(HasherMapVals[idx]) {
-			s.SetHasher(idx)
+			err := s.setHasher(idx)
+			if err != nil {
+				return err
+			}
 			return nil
 		}
 	}
