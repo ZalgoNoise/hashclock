@@ -265,7 +265,7 @@ Integrating `hashclock` or recursive hashing in your project may involve one of 
 
 The [`Hasher` interface](https://github.com/ZalgoNoise/meta/blob/master/crypto/hash/hash.go) is a simple, generic and abstract interface to join all hashing algorithms:
 
-```
+```go
 package hash
 
 // Hasher interface defines the behavior of a recursive hasher
@@ -278,7 +278,7 @@ type Hasher interface {
 
 From this point, all hash functions implement the `Hash` method, which must work recursively (as described in the interface), in this case by passing a fixed-size slice of bytes to one without defined capacity (just like input data). Taking the `SHA256` struct as an example:
 
-```
+```go
 package hash
 
 import (
@@ -312,7 +312,7 @@ ____________
 
 This package (in `zalgonoise/hashclock/app/clock`) will contain logic to apply the `Hasher` interface as a generator / verifier of hash timestamps (based on the number of iterations). The module is very simple, containing three main types with a service's _request_ / _response_ approach:
 
-```
+```go
 package clock
 
 import (
@@ -359,7 +359,7 @@ type HashClockService struct {
 
 To spawn a HashClockService instance, it's best to use the public function `NewService()`, which return a pointer to a `HashClockService` with default settings, and an initialized request object (note that the response object is only generated as the response is being built):
 
-```
+```go
 // NewService function is a generic public function to spawn a
 // pointer to a new HashClockService, with set default values
 func NewService() *HashClockService {
@@ -386,7 +386,7 @@ func NewService() *HashClockService {
 
 First of all, it's important to define the hashing algorithm that the service will use. This is done via the `SetHasher` method, that takes in a string (reference to a supported hashing algorithm) and sets the `HashClockService`'s hasher to the appropriate one, via two enum maps:
 
-```
+```go
 var HasherMap = map[int]rhash.Hasher{
 	0: rhash.MD5{},
 	1: rhash.SHA1{},
@@ -428,7 +428,7 @@ func (s *HashClockService) SetHasher(input string) error {
 
 Quick example of the service being initialized in a new project, with a sha512 hasher:
 
-```
+```go
 package main 
 
 import (
