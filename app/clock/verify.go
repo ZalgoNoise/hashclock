@@ -78,8 +78,8 @@ func (c *HashClockService) newVerifyResponse() (*HashClockResponse, error) {
 	}
 }
 
-// VerifyTimeout method will take in a seed string, a target hash,
-// returning an execution of the `newVerifyTimeoutResponse` method
+// VerifyTimeout method will take in a seed string, a target hash and a timeout 
+// value returning an execution of the `newVerifyTimeoutResponse` method
 func (c *HashClockService) VerifyTimeout(seed, hash string, timeout int) (*HashClockResponse, error) {
 	// empty string exception
 	if seed == "" {
@@ -192,8 +192,8 @@ func (c *HashClockService) newVerifyTimeoutResponse() (*HashClockResponse, error
 	return c.response, nil
 }
 
-// VerifyIndex method will take in a seed string, a target hash,
-// returning an execution of the `newVerifyIndexResponse` method
+// VerifyIndex method will take in a seed string, a target hash and target number of
+// iterations returning an execution of the `newVerifyIndexResponse` method
 func (c *HashClockService) VerifyIndex(seed string, hash string, iterations int) (*HashClockResponse, error) {
 
 	// empty string exception

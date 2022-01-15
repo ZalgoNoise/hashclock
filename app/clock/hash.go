@@ -193,7 +193,7 @@ func (c *HashClockService) RecHashLoop(seed string, breakpoint int) error {
 	}
 }
 
-// RecHashTime method will take in a seed string and a timeout value (in seconds),
+// RecHashTimeout method will take in a seed string and a timeout value (in seconds),
 // returning an execution of the `newRecHashTimeResponse` method
 func (c *HashClockService) RecHashTimeout(seed string, timeout int) (*HashClockResponse, error) {
 	// empty string exception
